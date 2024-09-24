@@ -36,9 +36,12 @@ namespace criptografar
                 string senha = txtSenha.Text;
                 string senhaEncript = BCrypt.Net.BCrypt.HashPassword(senha, workFactor: 12);
 
-                string insert = $"INSERT INTO senha(senha_string, senha_numeric) VALUES ('{senha}', '{senhaEncript}')";
+                string insert = $"INSERT INTO senha(senha_string, senha_numeric) VALUES (@senha, @senhaEncript)";
                 using (SqlCommand cmd = new SqlCommand(insert, Sql.conector))
                 {
+                    cmd.Parameters.AddWithValue("@senha", senha);
+                    cmd.Parameters.AddWithValue("@senhaEncript", senhaEncript);
+
                     cmd.ExecuteNonQuery();
                     Sql.conector.Close();
                 }
@@ -60,13 +63,16 @@ namespace criptografar
 
         private void btnVerify_Click(object sender, EventArgs e)
         {
+            string senha = txtSenha.Text;
             try
             {
                 Sql.conector.Open();
 
-                string query = $"SELECT senha_numeric FROM senha WHERE senha_string = '{txtSenha.Text}'";
+                string query = "SELECT senha_numeric FROM senha WHERE senha_string = @senha";
                 using (SqlCommand cmd = new SqlCommand(query, Sql.conector))
                 {
+                    cmd.Parameters.AddWithValue("@senha", senha);
+
                     SqlDataReader reader = cmd.ExecuteReader();
                     if (reader.Read())
                     {
